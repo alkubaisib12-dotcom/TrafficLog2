@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -37,6 +38,9 @@ public class AddVehicleActivity extends AppCompatActivity {
     private ImageView ivVehicleImage;
     private LinearLayout layoutImagePlaceholder;
     private Spinner spinnerVehicleType;
+
+    private TextInputLayout tilCustomVehicleType;
+    private TextInputEditText etCustomVehicleType;
 
     private TextInputLayout tilLicensePlate;
     private TextInputLayout tilRegistrationDate;
@@ -98,6 +102,9 @@ public class AddVehicleActivity extends AppCompatActivity {
 
         spinnerVehicleType = findViewById(R.id.spinnerVehicleType);
 
+        tilCustomVehicleType = findViewById(R.id.tilCustomVehicleType);
+        etCustomVehicleType = findViewById(R.id.etCustomVehicleType);
+
         tilLicensePlate = findViewById(R.id.tilLicensePlate);
         tilRegistrationDate = findViewById(R.id.tilRegistrationDate);
         tilRegistrationExpiry = findViewById(R.id.tilRegistrationExpiry);
@@ -136,6 +143,25 @@ public class AddVehicleActivity extends AppCompatActivity {
         );
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerVehicleType.setAdapter(typeAdapter);
+
+        // Show/hide custom vehicle type field when "Other" is selected
+        spinnerVehicleType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedType = parent.getItemAtPosition(position).toString();
+                if ("Other".equalsIgnoreCase(selectedType)) {
+                    tilCustomVehicleType.setVisibility(View.VISIBLE);
+                } else {
+                    tilCustomVehicleType.setVisibility(View.GONE);
+                    etCustomVehicleType.setText(""); // Clear custom type when not "Other"
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                tilCustomVehicleType.setVisibility(View.GONE);
+            }
+        });
 
         // Date pickers for all date fields
         setupDateField(etRegistrationDate);
@@ -214,7 +240,21 @@ public class AddVehicleActivity extends AppCompatActivity {
             return;
         }
 
-        final String type = spinnerVehicleType.getSelectedItem().toString();
+        String selectedType = spinnerVehicleType.getSelectedItem().toString();
+        final String customType = getTextOrEmpty(etCustomVehicleType);
+
+        // If "Other" is selected, use custom type instead
+        final String type;
+        if ("Other".equalsIgnoreCase(selectedType)) {
+            if (!TextUtils.isEmpty(customType)) {
+                type = customType; // Use custom type (e.g., "Van", "Truck")
+            } else {
+                type = "Other"; // Fallback to "Other" if custom type is empty
+            }
+        } else {
+            type = selectedType; // Use Car or Motorcycle
+        }
+
         final String licensePlate = getTextOrEmpty(etLicensePlate);
         final String registrationDate = getTextOrEmpty(etRegistrationDate);
         final String registrationExpiry = getTextOrEmpty(etRegistrationExpiry);
@@ -229,6 +269,14 @@ public class AddVehicleActivity extends AppCompatActivity {
         final String imageUriString = selectedImageUri != null ? selectedImageUri.toString() : null;
 
         boolean hasError = false;
+
+        // Validate custom vehicle type when "Other" is selected
+        if ("Other".equalsIgnoreCase(selectedType) && TextUtils.isEmpty(customType)) {
+            tilCustomVehicleType.setError("Please specify the vehicle type");
+            hasError = true;
+        } else {
+            tilCustomVehicleType.setError(null);
+        }
 
         if (TextUtils.isEmpty(licensePlate)) {
             tilLicensePlate.setError("License plate is required");
