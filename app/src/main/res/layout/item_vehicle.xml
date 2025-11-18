@@ -13,19 +13,30 @@
         android:orientation="horizontal"
         android:padding="12dp">
 
-        <!-- Vehicle icon -->
-        <ImageView
-            android:id="@+id/ivVehicleIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+        <!-- Vehicle image/icon -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_marginEnd="12dp"
-            android:src="@android:drawable/ic_dialog_info"
-            android:tint="#666666" />
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#DDDDDD">
+
+            <ImageView
+                android:id="@+id/ivVehicleIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_dialog_info" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_gravity="center_vertical"
             android:orientation="vertical">
 
             <TextView

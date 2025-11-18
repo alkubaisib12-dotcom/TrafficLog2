@@ -1,5 +1,6 @@
 package com.example.trafficlog.ui;
 
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,16 +52,21 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         holder.tvStatus.setText(item.statusText);
         holder.tvDate.setText(item.dateText);
 
-        // Set vehicle icon based on type
-        int iconRes;
-        if ("Car".equalsIgnoreCase(item.vehicleType)) {
-            iconRes = android.R.drawable.ic_menu_mylocation;  // Car icon
-        } else if ("Motorcycle".equalsIgnoreCase(item.vehicleType)) {
-            iconRes = android.R.drawable.ic_menu_compass;  // Motorcycle icon
+        // Load vehicle image if available, otherwise show icon based on type
+        if (item.imageUri != null && !item.imageUri.trim().isEmpty()) {
+            try {
+                // Load actual vehicle image
+                Uri imageUri = Uri.parse(item.imageUri);
+                holder.ivIcon.setImageURI(imageUri);
+                holder.ivIcon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            } catch (Exception e) {
+                // If image loading fails, show fallback icon
+                setFallbackIcon(holder.ivIcon, item.vehicleType);
+            }
         } else {
-            iconRes = android.R.drawable.ic_dialog_info;  // Other/generic icon
+            // No image uploaded, show icon based on vehicle type
+            setFallbackIcon(holder.ivIcon, item.vehicleType);
         }
-        holder.ivIcon.setImageResource(iconRes);
 
         // Color status text based on status type
         int colorRes;
@@ -88,6 +94,19 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
     @Override
     public int getItemCount() {
         return items != null ? items.size() : 0;
+    }
+
+    private void setFallbackIcon(ImageView imageView, String vehicleType) {
+        int iconRes;
+        if ("Car".equalsIgnoreCase(vehicleType)) {
+            iconRes = android.R.drawable.ic_menu_mylocation;  // Car icon
+        } else if ("Motorcycle".equalsIgnoreCase(vehicleType)) {
+            iconRes = android.R.drawable.ic_menu_compass;  // Motorcycle icon
+        } else {
+            iconRes = android.R.drawable.ic_dialog_info;  // Other/generic icon
+        }
+        imageView.setImageResource(iconRes);
+        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
     }
 
     static class VehicleViewHolder extends RecyclerView.ViewHolder {
