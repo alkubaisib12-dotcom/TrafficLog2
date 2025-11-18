@@ -9,11 +9,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.trafficlog.R;
 import com.example.trafficlog.data.AppDatabase;
+import com.example.trafficlog.data.MaintenanceDao;
 import com.example.trafficlog.data.VehicleDao;
 import com.example.trafficlog.model.Vehicle;
 import com.google.android.material.card.MaterialCardView;
@@ -46,6 +48,7 @@ public class VehicleDetailsActivity extends AppCompatActivity {
     private TextView tvStatusSummary;
 
     private Button btnLogMaintenance;
+    private Button btnDeleteVehicle;
 
     private int vehicleId;
     private Vehicle vehicle;
@@ -79,6 +82,7 @@ public class VehicleDetailsActivity extends AppCompatActivity {
         tvTaxNextDate = findViewById(R.id.tvTaxNextDate);
         tvStatusSummary = findViewById(R.id.tvStatusSummary);
         btnLogMaintenance = findViewById(R.id.btnLogMaintenance);
+        btnDeleteVehicle = findViewById(R.id.btnDeleteVehicle);
 
         vehicleId = getIntent().getIntExtra("vehicleId", -1);
         if (vehicleId == -1) {
@@ -95,6 +99,13 @@ public class VehicleDetailsActivity extends AppCompatActivity {
                 Intent intent = new Intent(VehicleDetailsActivity.this, MaintenanceActivity.class);
                 intent.putExtra("vehicleId", vehicleId);
                 startActivity(intent);
+            }
+        });
+
+        btnDeleteVehicle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDeleteConfirmationDialog();
             }
         });
     }
@@ -242,5 +253,45 @@ public class VehicleDetailsActivity extends AppCompatActivity {
             // ignore
         }
         return null;
+    }
+
+    private void showDeleteConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Vehicle")
+                .setMessage("Are you sure you want to delete this vehicle? This action cannot be undone.")
+                .setPositiveButton("Delete", new android.content.DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(android.content.DialogInterface dialog, int which) {
+                        deleteVehicle();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteVehicle() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+                VehicleDao vehicleDao = db.vehicleDao();
+                MaintenanceDao maintenanceDao = db.maintenanceDao();
+
+                // Delete associated maintenance entries first
+                maintenanceDao.deleteMaintenanceForVehicle(vehicleId);
+
+                // Delete the vehicle
+                vehicleDao.deleteVehicleById(vehicleId);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(VehicleDetailsActivity.this,
+                                "Vehicle deleted successfully", Toast.LENGTH_SHORT).show();
+                        finish(); // Go back to Dashboard
+                    }
+                });
+            }
+        }).start();
     }
 }
