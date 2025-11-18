@@ -67,6 +67,11 @@ public class AddVehicleActivity extends AppCompatActivity {
     // For storing selected image URI
     private Uri selectedImageUri = null;
 
+    // Edit mode tracking
+    private boolean isEditMode = false;
+    private int editVehicleId = -1;
+    private Vehicle existingVehicle = null;
+
     // Modern way to handle image selection (replaces deprecated onActivityResult)
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -90,9 +95,14 @@ public class AddVehicleActivity extends AppCompatActivity {
         // Setup toolbar with back button
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Check if we're in edit mode
+        editVehicleId = getIntent().getIntExtra("vehicleId", -1);
+        isEditMode = (editVehicleId != -1);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Add Vehicle");
+            getSupportActionBar().setTitle(isEditMode ? "Edit Vehicle" : "Add Vehicle");
         }
 
         // Image picker views
@@ -178,6 +188,83 @@ public class AddVehicleActivity extends AppCompatActivity {
                 saveVehicle();
             }
         });
+
+        // Load existing vehicle data if in edit mode
+        if (isEditMode) {
+            loadVehicleData();
+        }
+    }
+
+    // Load existing vehicle data for editing
+    private void loadVehicleData() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+                VehicleDao vehicleDao = db.vehicleDao();
+                existingVehicle = vehicleDao.getVehicleById(editVehicleId);
+
+                if (existingVehicle == null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(AddVehicleActivity.this, "Vehicle not found", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    });
+                    return;
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        populateFields(existingVehicle);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    // Populate form fields with existing vehicle data
+    private void populateFields(Vehicle vehicle) {
+        // Load image if available
+        if (vehicle.imageUri != null && !vehicle.imageUri.trim().isEmpty()) {
+            try {
+                selectedImageUri = Uri.parse(vehicle.imageUri);
+                ivVehicleImage.setImageURI(selectedImageUri);
+                ivVehicleImage.setVisibility(View.VISIBLE);
+                layoutImagePlaceholder.setVisibility(View.GONE);
+            } catch (Exception e) {
+                // Image loading failed, keep placeholder
+            }
+        }
+
+        // Set vehicle type in spinner
+        String[] types = getResources().getStringArray(R.array.vehicle_types_array);
+        for (int i = 0; i < types.length; i++) {
+            if (types[i].equalsIgnoreCase(vehicle.type)) {
+                spinnerVehicleType.setSelection(i);
+                break;
+            } else if ("Other".equalsIgnoreCase(types[i]) &&
+                       !vehicle.type.equalsIgnoreCase("Car") &&
+                       !vehicle.type.equalsIgnoreCase("Motorcycle")) {
+                // If vehicle type is custom (e.g., Van, Truck), select "Other" and show custom field
+                spinnerVehicleType.setSelection(i);
+                etCustomVehicleType.setText(vehicle.type);
+                break;
+            }
+        }
+
+        // Populate all fields
+        etLicensePlate.setText(vehicle.licensePlate);
+        etRegistrationDate.setText(vehicle.registrationDate);
+        etRegistrationExpiry.setText(vehicle.registrationExpiry);
+        etInsuranceCompany.setText(vehicle.insuranceCompany);
+        etInsuranceExpiry.setText(vehicle.insuranceExpiry);
+        etMotLastDate.setText(vehicle.motLastDate);
+        etMotNextDate.setText(vehicle.motNextDate);
+        etTaxLastDate.setText(vehicle.taxLastDate);
+        etTaxNextDate.setText(vehicle.taxNextDate);
     }
 
     // Handle back button press
@@ -323,8 +410,17 @@ public class AddVehicleActivity extends AppCompatActivity {
                 AppDatabase db = AppDatabase.getInstance(getApplicationContext());
                 VehicleDao vehicleDao = db.vehicleDao();
 
-                Vehicle vehicle = new Vehicle();
-                vehicle.userId = userId;
+                Vehicle vehicle;
+                if (isEditMode && existingVehicle != null) {
+                    // Edit mode: update existing vehicle
+                    vehicle = existingVehicle;
+                } else {
+                    // Add mode: create new vehicle
+                    vehicle = new Vehicle();
+                    vehicle.userId = userId;
+                }
+
+                // Update/set all fields
                 vehicle.type = type;
                 vehicle.imageUri = imageUriString; // Save the image URI
                 vehicle.licensePlate = licensePlate;
@@ -337,13 +433,18 @@ public class AddVehicleActivity extends AppCompatActivity {
                 vehicle.taxLastDate = taxLastDate;
                 vehicle.taxNextDate = taxNextDate;
 
-                vehicleDao.insertVehicle(vehicle);
+                if (isEditMode) {
+                    vehicleDao.updateVehicle(vehicle);
+                } else {
+                    vehicleDao.insertVehicle(vehicle);
+                }
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(AddVehicleActivity.this,
-                                "Vehicle saved successfully", Toast.LENGTH_SHORT).show();
+                                isEditMode ? "Vehicle updated successfully" : "Vehicle saved successfully",
+                                Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 });
