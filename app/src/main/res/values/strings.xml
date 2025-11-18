@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TrafficLog</string>
+
+    <string-array name="vehicle_types_array">
+        <item>Car</item>
+        <item>Motorcycle</item>
+        <item>Other</item>
+    </string-array>
+</resources>
