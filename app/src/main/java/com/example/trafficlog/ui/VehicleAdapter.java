@@ -3,6 +3,7 @@ package com.example.trafficlog.ui;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -50,6 +51,17 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         holder.tvStatus.setText(item.statusText);
         holder.tvDate.setText(item.dateText);
 
+        // Set vehicle icon based on type
+        int iconRes;
+        if ("Car".equalsIgnoreCase(item.vehicleType)) {
+            iconRes = android.R.drawable.ic_menu_mylocation;  // Car icon
+        } else if ("Motorcycle".equalsIgnoreCase(item.vehicleType)) {
+            iconRes = android.R.drawable.ic_menu_compass;  // Motorcycle icon
+        } else {
+            iconRes = android.R.drawable.ic_dialog_info;  // Other/generic icon
+        }
+        holder.ivIcon.setImageResource(iconRes);
+
         // Color status text based on status type
         int colorRes;
         if (item.statusType == StatusType.UP_TO_DATE) {
@@ -80,12 +92,14 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
     static class VehicleViewHolder extends RecyclerView.ViewHolder {
 
+        ImageView ivIcon;
         TextView tvName;
         TextView tvStatus;
         TextView tvDate;
 
         VehicleViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivIcon = itemView.findViewById(R.id.ivVehicleIcon);
             tvName = itemView.findViewById(R.id.tvVehicleName);
             tvStatus = itemView.findViewById(R.id.tvVehicleStatus);
             tvDate = itemView.findViewById(R.id.tvVehicleDate);
