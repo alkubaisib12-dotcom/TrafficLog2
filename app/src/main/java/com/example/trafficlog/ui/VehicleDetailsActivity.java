@@ -48,6 +48,7 @@ public class VehicleDetailsActivity extends AppCompatActivity {
     private TextView tvStatusSummary;
 
     private Button btnLogMaintenance;
+    private Button btnEditVehicle;
     private Button btnDeleteVehicle;
 
     private int vehicleId;
@@ -82,6 +83,7 @@ public class VehicleDetailsActivity extends AppCompatActivity {
         tvTaxNextDate = findViewById(R.id.tvTaxNextDate);
         tvStatusSummary = findViewById(R.id.tvStatusSummary);
         btnLogMaintenance = findViewById(R.id.btnLogMaintenance);
+        btnEditVehicle = findViewById(R.id.btnEditVehicle);
         btnDeleteVehicle = findViewById(R.id.btnDeleteVehicle);
 
         vehicleId = getIntent().getIntExtra("vehicleId", -1);
@@ -98,6 +100,15 @@ public class VehicleDetailsActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(VehicleDetailsActivity.this, MaintenanceActivity.class);
                 intent.putExtra("vehicleId", vehicleId);
+                startActivity(intent);
+            }
+        });
+
+        btnEditVehicle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(VehicleDetailsActivity.this, AddVehicleActivity.class);
+                intent.putExtra("vehicleId", vehicleId);  // Pass vehicle ID for edit mode
                 startActivity(intent);
             }
         });
