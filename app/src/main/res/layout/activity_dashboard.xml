@@ -34,7 +34,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="All"
+            android:text="ALL UP TO DATE"
+            android:textSize="10sp"
             android:textAllCaps="false" />
 
         <com.google.android.material.button.MaterialButton
@@ -43,7 +44,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Due soon"
+            android:text="DUE SOON"
+            android:textSize="10sp"
             android:textAllCaps="false" />
 
         <com.google.android.material.button.MaterialButton
@@ -52,7 +54,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Overdue"
+            android:text="OVERDUE"
+            android:textSize="10sp"
             android:textAllCaps="false" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 

@@ -180,7 +180,8 @@ public class DashboardActivity extends AppCompatActivity implements VehicleAdapt
                 displayName,
                 statusText,
                 dateText,
-                statusType
+                statusType,
+                v.type  // Pass vehicle type to display icon
         );
     }
 
@@ -229,13 +230,15 @@ public class DashboardActivity extends AppCompatActivity implements VehicleAdapt
         public final String statusText;
         public final String dateText;
         public final StatusType statusType;
+        public final String vehicleType;  // Car, Motorcycle, Other
 
-        public VehicleItem(int id, String name, String statusText, String dateText, StatusType statusType) {
+        public VehicleItem(int id, String name, String statusText, String dateText, StatusType statusType, String vehicleType) {
             this.id = id;
             this.name = name;
             this.statusText = statusText;
             this.dateText = dateText;
             this.statusType = statusType;
+            this.vehicleType = vehicleType;
         }
     }
 }
